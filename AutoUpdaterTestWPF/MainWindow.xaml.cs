@@ -19,7 +19,7 @@ namespace AutoUpdaterTestWPF
         private void ButtonCheckForUpdate_Click(object sender, RoutedEventArgs e)
         {
             ApplicationUpdater applicationUpdater = new ApplicationUpdater();
-            applicationUpdater.Start("http://localhost/test.xml");
+            applicationUpdater.Start("http://rbsoft.org/updates/AutoUpdaterTestWPF.xml");
         }
     }
 }
