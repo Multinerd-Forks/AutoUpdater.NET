@@ -2,7 +2,7 @@
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
     <RootNamespace>AutoUpdaterDotNET</RootNamespace>
-    <TargetFrameworks>net40</TargetFrameworks>
+    <TargetFrameworks>net461</TargetFrameworks>
     <AssemblyTitle>AutoUpdater.NET</AssemblyTitle>
     <Company>RBSoft</Company>
     <Product>AutoUpdater.NET</Product>
@@ -33,7 +33,12 @@
     <DocumentationFile>build\lib\AutoUpdater.NET.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Resource.Embedder" Version="1.2.8">
+    <Compile Remove="build\**" />
+    <EmbeddedResource Remove="build\**" />
+    <None Remove="build\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Resource.Embedder" Version="2.0.1">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
@@ -270,5 +275,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\download_32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\2.0\src\AutoUpdater.Core\AutoUpdater.Core.csproj" />
   </ItemGroup>
 </Project>

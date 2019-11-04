@@ -13,312 +13,288 @@ using AutoUpdaterDotNET.Properties;
 
 namespace AutoUpdaterDotNET
 {
-    internal partial class DownloadUpdateDialog : Form
-    {
-        private readonly string _downloadURL;
+	internal partial class DownloadUpdateDialog : Form
+	{
+		private readonly string _downloadURL;
 
-        private string _tempFile;
+		private DateTime _startedAt;
 
-        private MyWebClient _webClient;
+		private string _tempFile;
 
-        private DateTime _startedAt;
+		private MyWebClient _webClient;
 
-        public DownloadUpdateDialog(string downloadURL)
-        {
-            InitializeComponent();
+		public DownloadUpdateDialog(string downloadURL)
+		{
+			InitializeComponent();
 
-            _downloadURL = downloadURL;
+			_downloadURL = downloadURL;
 
-            if (AutoUpdater.Mandatory && AutoUpdater.UpdateMode == Mode.ForcedDownload)
-            {
-                ControlBox = false;
-            }
-        }
+			if (AutoUpdater.Mandatory && AutoUpdater.UpdateMode == Mode.ForcedDownload) ControlBox = false;
+		}
 
-        private void DownloadUpdateDialogLoad(object sender, EventArgs e)
-        {
-            var uri = new Uri(_downloadURL);
-            
-            if (uri.Scheme.Equals(Uri.UriSchemeFtp))
-            {
-                _webClient = new MyWebClient {Credentials = AutoUpdater.FtpCredentials};
-            }
-            else
-            {
-                _webClient = new MyWebClient();
+		private void DownloadUpdateDialogLoad(object sender, EventArgs e)
+		{
+			var uri = new Uri(_downloadURL);
 
-                if (uri.Scheme.Equals(Uri.UriSchemeHttp) || uri.Scheme.Equals(Uri.UriSchemeHttps))
-                {
-                    if (AutoUpdater.BasicAuthDownload != null)
-                    {
-                        _webClient.Headers[HttpRequestHeader.Authorization] = AutoUpdater.BasicAuthDownload.ToString();
-                    }
+			if (uri.Scheme.Equals(Uri.UriSchemeFtp))
+			{
+				_webClient = new MyWebClient {Credentials = AutoUpdater.FtpCredentials};
+			}
+			else
+			{
+				_webClient = new MyWebClient();
 
-                    _webClient.Headers[HttpRequestHeader.UserAgent] = AutoUpdater.GetUserAgent();
-                }
-            }
+				if (uri.Scheme.Equals(Uri.UriSchemeHttp) || uri.Scheme.Equals(Uri.UriSchemeHttps))
+				{
+					if (AutoUpdater.BasicAuthDownload != null) _webClient.Headers[HttpRequestHeader.Authorization] = AutoUpdater.BasicAuthDownload.ToString();
 
-            _webClient.CachePolicy = new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore);
+					_webClient.Headers[HttpRequestHeader.UserAgent] = AutoUpdater.GetUserAgent();
+				}
+			}
 
-            if (AutoUpdater.Proxy != null)
-            {
-                _webClient.Proxy = AutoUpdater.Proxy;
-            }
+			_webClient.CachePolicy = new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore);
 
-            if (string.IsNullOrEmpty(AutoUpdater.DownloadPath))
-            {
-                _tempFile = Path.GetTempFileName();
-            }
-            else
-            {
-                _tempFile = Path.Combine(AutoUpdater.DownloadPath, $"{Guid.NewGuid().ToString()}.tmp");
-                if (!Directory.Exists(AutoUpdater.DownloadPath))
-                {
-                    Directory.CreateDirectory(AutoUpdater.DownloadPath);
-                }
-            }
+			if (AutoUpdater.Proxy != null) _webClient.Proxy = AutoUpdater.Proxy;
 
-            _webClient.DownloadProgressChanged += OnDownloadProgressChanged;
+			if (string.IsNullOrEmpty(AutoUpdater.DownloadPath))
+			{
+				_tempFile = Path.GetTempFileName();
+			}
+			else
+			{
+				_tempFile = Path.Combine(AutoUpdater.DownloadPath, $"{Guid.NewGuid().ToString()}.tmp");
+				if (!Directory.Exists(AutoUpdater.DownloadPath)) Directory.CreateDirectory(AutoUpdater.DownloadPath);
+			}
 
-            _webClient.DownloadFileCompleted += WebClientOnDownloadFileCompleted;
+			_webClient.DownloadProgressChanged += OnDownloadProgressChanged;
 
-            _webClient.DownloadFileAsync(uri, _tempFile);
-        }
+			_webClient.DownloadFileCompleted += WebClientOnDownloadFileCompleted;
 
-        private void OnDownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
-        {
-            if (_startedAt == default(DateTime))
-            {
-                _startedAt = DateTime.Now;
-            }
-            else
-            {
-                var timeSpan = DateTime.Now - _startedAt;
-                long totalSeconds = (long) timeSpan.TotalSeconds;
-                if (totalSeconds > 0)
-                {
-                    var bytesPerSecond = e.BytesReceived / totalSeconds;
-                    labelInformation.Text =
-                        string.Format(Resources.DownloadSpeedMessage, BytesToString(bytesPerSecond));
-                }
-            }
+			_webClient.DownloadFileAsync(uri, _tempFile);
+		}
 
-            labelSize.Text = $@"{BytesToString(e.BytesReceived)} / {BytesToString(e.TotalBytesToReceive)}";
-            progressBar.Value = e.ProgressPercentage;
-        }
+		private void OnDownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
+		{
+			if (_startedAt == default)
+			{
+				_startedAt = DateTime.Now;
+			}
+			else
+			{
+				var timeSpan = DateTime.Now - _startedAt;
+				var totalSeconds = (long) timeSpan.TotalSeconds;
 
-        private void WebClientOnDownloadFileCompleted(object sender, AsyncCompletedEventArgs asyncCompletedEventArgs)
-        {
-            if (asyncCompletedEventArgs.Cancelled)
-            {
-                return;
-            }
+				if (totalSeconds > 0)
+				{
+					var bytesPerSecond = e.BytesReceived / totalSeconds;
 
-            if (asyncCompletedEventArgs.Error != null)
-            {
-                MessageBox.Show(asyncCompletedEventArgs.Error.Message,
-                    asyncCompletedEventArgs.Error.GetType().ToString(), MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
-                _webClient = null;
-                Close();
-                return;
-            }
+					labelInformation.Text =
+							string.Format(Resources.DownloadSpeedMessage, BytesToString(bytesPerSecond));
+				}
+			}
 
-            if (!string.IsNullOrEmpty(AutoUpdater.Checksum))
-            {
-                if (!CompareChecksum(_tempFile, AutoUpdater.Checksum))
-                {
-                    _webClient = null;
-                    Close();
-                    return;
-                }
-            }
+			labelSize.Text = $@"{BytesToString(e.BytesReceived)} / {BytesToString(e.TotalBytesToReceive)}";
+			progressBar.Value = e.ProgressPercentage;
+		}
 
-            ContentDisposition contentDisposition = null;
-            if (_webClient.ResponseHeaders["Content-Disposition"] != null)
-            {
-                contentDisposition = new ContentDisposition(_webClient.ResponseHeaders["Content-Disposition"]);
-            }
+		private void WebClientOnDownloadFileCompleted(object sender, AsyncCompletedEventArgs asyncCompletedEventArgs)
+		{
+			if (asyncCompletedEventArgs.Cancelled) return;
 
-            var fileName = string.IsNullOrEmpty(contentDisposition?.FileName)
-                ? Path.GetFileName(_webClient.ResponseUri.LocalPath)
-                : contentDisposition.FileName;
+			if (asyncCompletedEventArgs.Error != null)
+			{
+				MessageBox.Show(asyncCompletedEventArgs.Error.Message,
+						asyncCompletedEventArgs.Error.GetType().ToString(), MessageBoxButtons.OK,
+						MessageBoxIcon.Error);
 
-            var tempPath =
-                Path.Combine(
-                    string.IsNullOrEmpty(AutoUpdater.DownloadPath) ? Path.GetTempPath() : AutoUpdater.DownloadPath,
-                    fileName);
+				_webClient = null;
+				Close();
+				return;
+			}
 
-            try
-            {
-                if (File.Exists(tempPath))
-                {
-                    File.Delete(tempPath);
-                }
+			if (!string.IsNullOrEmpty(AutoUpdater.Checksum))
+				if (!CompareChecksum(_tempFile, AutoUpdater.Checksum))
+				{
+					_webClient = null;
+					Close();
+					return;
+				}
 
-                File.Move(_tempFile, tempPath);
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message, e.GetType().ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
-                _webClient = null;
-                Close();
-                return;
-            }
+			ContentDisposition contentDisposition = null;
+			if (_webClient.ResponseHeaders["Content-Disposition"] != null) contentDisposition = new ContentDisposition(_webClient.ResponseHeaders["Content-Disposition"]);
 
-            AutoUpdater.InstallerArgs = AutoUpdater.InstallerArgs.Replace("%path%",
-                Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName));
+			var fileName = string.IsNullOrEmpty(contentDisposition?.FileName)
+					? Path.GetFileName(_webClient.ResponseUri.LocalPath)
+					: contentDisposition.FileName;
 
-            var processStartInfo = new ProcessStartInfo
-            {
-                FileName = tempPath,
-                UseShellExecute = true,
-                Arguments = AutoUpdater.InstallerArgs
-            };
+			var tempPath =
+					Path.Combine(
+							string.IsNullOrEmpty(AutoUpdater.DownloadPath) ? Path.GetTempPath() : AutoUpdater.DownloadPath,
+							fileName);
 
-            var extension = Path.GetExtension(tempPath);
-            if (extension.Equals(".zip", StringComparison.OrdinalIgnoreCase))
-            {
-                string installerPath = Path.Combine(Path.GetDirectoryName(tempPath), "ZipExtractor.exe");
+			try
+			{
+				if (File.Exists(tempPath)) File.Delete(tempPath);
 
-                try
-                {
-                    File.WriteAllBytes(installerPath, Resources.ZipExtractor_Winforms);
-                }
-                catch (Exception e)
-                {
-                    MessageBox.Show(e.Message, e.GetType().ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    _webClient = null;
-                    Close();
-                    return;
-                }
+				File.Move(_tempFile, tempPath);
+			}
+			catch (Exception e)
+			{
+				MessageBox.Show(e.Message, e.GetType().ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
+				_webClient = null;
+				Close();
+				return;
+			}
 
-                StringBuilder arguments =
-                    new StringBuilder($"\"{tempPath}\" \"{Process.GetCurrentProcess().MainModule.FileName}\"");
-                string[] args = Environment.GetCommandLineArgs();
-                for (int i = 1; i < args.Length; i++)
-                {
-                    if (i.Equals(1))
-                    {
-                        arguments.Append(" \"");
-                    }
+			AutoUpdater.InstallerArgs = AutoUpdater.InstallerArgs.Replace("%path%",
+					Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName));
 
-                    arguments.Append(args[i]);
-                    arguments.Append(i.Equals(args.Length - 1) ? "\"" : " ");
-                }
+			var processStartInfo = new ProcessStartInfo
+			{
+					FileName = tempPath,
+					UseShellExecute = true,
+					Arguments = AutoUpdater.InstallerArgs
+			};
 
-                processStartInfo = new ProcessStartInfo
-                {
-                    FileName = installerPath,
-                    UseShellExecute = true,
-                    Arguments = arguments.ToString()
-                };
-            }
-            else if (extension.Equals(".msi", StringComparison.OrdinalIgnoreCase))
-            {
-                processStartInfo = new ProcessStartInfo
-                {
-                    FileName = "msiexec",
-                    Arguments = $"/i \"{tempPath}\""
-                };
-                if (!string.IsNullOrEmpty(AutoUpdater.InstallerArgs))
-                {
-                    processStartInfo.Arguments += " " + AutoUpdater.InstallerArgs;
-                }
-            }
+			var extension = Path.GetExtension(tempPath);
 
-            if (AutoUpdater.RunUpdateAsAdmin)
-            {
-                processStartInfo.Verb = "runas";
-            }
+			if (extension.Equals(".zip", StringComparison.OrdinalIgnoreCase))
+			{
+				var installerPath = Path.Combine(Path.GetDirectoryName(tempPath), "ZipExtractor.exe");
 
-            try
-            {
-                Process.Start(processStartInfo);
-            }
-            catch (Win32Exception exception)
-            {
-                _webClient = null;
-                if (exception.NativeErrorCode != 1223)
-                    throw;
-            }
+				try
+				{
+					File.WriteAllBytes(installerPath, Resources.ZipExtractor_Winforms);
+				}
+				catch (Exception e)
+				{
+					MessageBox.Show(e.Message, e.GetType().ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
+					_webClient = null;
+					Close();
+					return;
+				}
 
-            Close();
-        }
+				var arguments =
+						new StringBuilder($"\"{tempPath}\" \"{Process.GetCurrentProcess().MainModule.FileName}\"");
 
-        private static String BytesToString(long byteCount)
-        {
-            string[] suf = {"B", "KB", "MB", "GB", "TB", "PB", "EB"};
-            if (byteCount == 0)
-                return "0" + suf[0];
-            long bytes = Math.Abs(byteCount);
-            int place = Convert.ToInt32(Math.Floor(Math.Log(bytes, 1024)));
-            double num = Math.Round(bytes / Math.Pow(1024, place), 1);
-            return $"{(Math.Sign(byteCount) * num).ToString(CultureInfo.InvariantCulture)} {suf[place]}";
-        }
+				var args = Environment.GetCommandLineArgs();
 
-        private static bool CompareChecksum(string fileName, string checksum)
-        {
-            using (var hashAlgorithm = HashAlgorithm.Create(AutoUpdater.HashingAlgorithm))
-            {
-                using (var stream = File.OpenRead(fileName))
-                {
-                    if (hashAlgorithm != null)
-                    {
-                        var hash = hashAlgorithm.ComputeHash(stream);
-                        var fileChecksum = BitConverter.ToString(hash).Replace("-", String.Empty).ToLowerInvariant();
+				for (var i = 1; i < args.Length; i++)
+				{
+					if (i.Equals(1)) arguments.Append(" \"");
 
-                        if (fileChecksum == checksum.ToLower()) return true;
+					arguments.Append(args[i]);
+					arguments.Append(i.Equals(args.Length - 1) ? "\"" : " ");
+				}
 
-                        MessageBox.Show(Resources.FileIntegrityCheckFailedMessage,
-                            Resources.FileIntegrityCheckFailedCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                    else
-                    {
-                        if (AutoUpdater.ReportErrors)
-                        {
-                            MessageBox.Show(Resources.HashAlgorithmNotSupportedMessage,
-                                Resources.HashAlgorithmNotSupportedCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        }
-                    }
+				processStartInfo = new ProcessStartInfo
+				{
+						FileName = installerPath,
+						UseShellExecute = true,
+						Arguments = arguments.ToString()
+				};
+			}
+			else if (extension.Equals(".msi", StringComparison.OrdinalIgnoreCase))
+			{
+				processStartInfo = new ProcessStartInfo
+				{
+						FileName = "msiexec",
+						Arguments = $"/i \"{tempPath}\""
+				};
 
-                    return false;
-                }
-            }
-        }
+				if (!string.IsNullOrEmpty(AutoUpdater.InstallerArgs)) processStartInfo.Arguments += " " + AutoUpdater.InstallerArgs;
+			}
 
-        private void DownloadUpdateDialog_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            if (_webClient == null)
-            {
-                DialogResult = DialogResult.Cancel;
-            }
-            else if (_webClient.IsBusy)
-            {
-                _webClient.CancelAsync();
-                DialogResult = DialogResult.Cancel;
-            }
-            else
-            {
-                DialogResult = DialogResult.OK;
-            }
-        }
-    }
+			if (AutoUpdater.RunUpdateAsAdmin) processStartInfo.Verb = "runas";
 
-    /// <inheritdoc />
-    public class MyWebClient : WebClient
-    {
+			try
+			{
+				Process.Start(processStartInfo);
+			}
+			catch (Win32Exception exception)
+			{
+				_webClient = null;
+
+				if (exception.NativeErrorCode != 1223)
+					throw;
+			}
+
+			Close();
+		}
+
+		private static string BytesToString(long byteCount)
+		{
+			string[] suf = {"B", "KB", "MB", "GB", "TB", "PB", "EB"};
+
+			if (byteCount == 0)
+				return "0" + suf[0];
+
+			var bytes = Math.Abs(byteCount);
+			var place = Convert.ToInt32(Math.Floor(Math.Log(bytes, 1024)));
+			var num = Math.Round(bytes / Math.Pow(1024, place), 1);
+			return $"{(Math.Sign(byteCount) * num).ToString(CultureInfo.InvariantCulture)} {suf[place]}";
+		}
+
+		private static bool CompareChecksum(string fileName, string checksum)
+		{
+			using (var hashAlgorithm = HashAlgorithm.Create(AutoUpdater.HashingAlgorithm))
+			{
+				using (var stream = File.OpenRead(fileName))
+				{
+					if (hashAlgorithm != null)
+					{
+						var hash = hashAlgorithm.ComputeHash(stream);
+						var fileChecksum = BitConverter.ToString(hash).Replace("-", string.Empty).ToLowerInvariant();
+
+						if (fileChecksum == checksum.ToLower()) return true;
+
+						MessageBox.Show(Resources.FileIntegrityCheckFailedMessage,
+								Resources.FileIntegrityCheckFailedCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
+					}
+					else
+					{
+						if (AutoUpdater.ReportErrors)
+							MessageBox.Show(Resources.HashAlgorithmNotSupportedMessage,
+									Resources.HashAlgorithmNotSupportedCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
+					}
+
+					return false;
+				}
+			}
+		}
+
+		private void DownloadUpdateDialog_FormClosing(object sender, FormClosingEventArgs e)
+		{
+			if (_webClient == null)
+			{
+				DialogResult = DialogResult.Cancel;
+			}
+			else if (_webClient.IsBusy)
+			{
+				_webClient.CancelAsync();
+				DialogResult = DialogResult.Cancel;
+			}
+			else
+			{
+				DialogResult = DialogResult.OK;
+			}
+		}
+	}
+
+	/// <inheritdoc />
+	public class MyWebClient : WebClient
+	{
         /// <summary>
         ///     Response Uri after any redirects.
         /// </summary>
         public Uri ResponseUri;
 
-        /// <inheritdoc />
-        protected override WebResponse GetWebResponse(WebRequest request, IAsyncResult result)
-        {
-            WebResponse webResponse = base.GetWebResponse(request, result);
-            ResponseUri = webResponse.ResponseUri;
-            return webResponse;
-        }
-    }
+		/// <inheritdoc />
+		protected override WebResponse GetWebResponse(WebRequest request, IAsyncResult result)
+		{
+			var webResponse = base.GetWebResponse(request, result);
+			ResponseUri = webResponse.ResponseUri;
+			return webResponse;
+		}
+	}
 }
