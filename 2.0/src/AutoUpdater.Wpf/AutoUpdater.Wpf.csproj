@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <TargetFrameworks>net461;netcoreapp3.0</TargetFrameworks>
+    <Product>AutoUpdater.Wpf</Product>
+    <ApplicationIcon>..\ZipExtractor.Core\ZipExtractor.ico</ApplicationIcon>
+    <RootNamespace>AutoUpdater</RootNamespace>
+    <OutputType>Library</OutputType>
+    <UseWPF>true</UseWPF>
+    <Authors>Michael Hedaitulla</Authors>
+    <Company>Multinerd</Company>
+  </PropertyGroup>
+
+</Project>
