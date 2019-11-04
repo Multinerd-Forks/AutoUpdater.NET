@@ -183,7 +183,7 @@ namespace AutoUpdaterDotNET
 
                 try
                 {
-                    File.WriteAllBytes(installerPath, Resources.ZipExtractor);
+                    File.WriteAllBytes(installerPath, Resources.ZipExtractor_Winforms);
                 }
                 catch (Exception e)
                 {

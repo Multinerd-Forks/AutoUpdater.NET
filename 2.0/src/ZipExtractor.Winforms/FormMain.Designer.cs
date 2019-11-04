@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormMain));
             this.progressBar = new System.Windows.Forms.ProgressBar();
             this.pictureBoxIcon = new System.Windows.Forms.PictureBox();
             this.labelInformation = new System.Windows.Forms.Label();
@@ -38,10 +39,10 @@
             // 
             this.progressBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.progressBar.Location = new System.Drawing.Point(96, 44);
+            this.progressBar.Location = new System.Drawing.Point(94, 44);
             this.progressBar.Margin = new System.Windows.Forms.Padding(5);
             this.progressBar.Name = "progressBar";
-            this.progressBar.Size = new System.Drawing.Size(396, 35);
+            this.progressBar.Size = new System.Drawing.Size(396, 36);
             this.progressBar.TabIndex = 0;
             // 
             // pictureBoxIcon
@@ -73,7 +74,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
-            this.ClientSize = new System.Drawing.Size(506, 100);
+            this.ClientSize = new System.Drawing.Size(504, 101);
             this.Controls.Add(this.labelInformation);
             this.Controls.Add(this.pictureBoxIcon);
             this.Controls.Add(this.progressBar);

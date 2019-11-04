@@ -1,0 +1,32 @@
+﻿<Window x:Class="ZipExtractor.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Installing update..." 
+        Height="140" 
+        Width="520"
+        WindowStartupLocation="CenterScreen">
+
+    <Grid Margin="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*" />
+            <ColumnDefinition Width="5*" />
+        </Grid.ColumnDefinitions>
+
+        <Image Source="pack://siteoforigin:,,,/Resources/zipextractor.png" Width="72" Height="72" />
+
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="1*" />
+                <RowDefinition Height="2*" />
+            </Grid.RowDefinitions>
+
+            <Label x:Name="LabelInformation" Content="Extracting..." FontSize="9pt" />
+
+            <ProgressBar x:Name="ProgressBar" Grid.Row="1" Width="396" Height="36" />
+        </Grid>
+
+    </Grid>
+</Window>

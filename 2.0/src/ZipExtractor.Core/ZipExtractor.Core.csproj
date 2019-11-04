@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.1;net461;netcoreapp3.0</TargetFrameworks>
+    <Product>ZipExtractor.Core</Product>
+    <RootNamespace>ZipExtractor</RootNamespace>
+    <Authors>Michael Hedaitulla</Authors>
+    <Company>Multinerd</Company>
+  </PropertyGroup>
+
+</Project>

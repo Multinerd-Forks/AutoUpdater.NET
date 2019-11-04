@@ -271,7 +271,4 @@
   <ItemGroup>
     <None Include="Resources\download_32.png" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\ZipExtractor.exe" />
-  </ItemGroup>
 </Project>
